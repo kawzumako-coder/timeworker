@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="description" content="開始・終了と休憩を入力して実働時間を自動計算。カレンダーに日別記録も保存できます。" />
+
+  <title>実働時間 計算</title>
+
+  <!-- Manifest（あなたは manifest.json にしているのでここは必ず .json） -->
+  <link rel="manifest" href="./manifest.json">
+
+  <!-- アイコン（ショートカット/タブ表示の安定化） -->
+  <link rel="icon" href="./icon-192.png" type="image/png">
+  <link rel="apple-touch-icon" href="./icon-192.png">
+
+  <!-- iOSの見た目（任意） -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="実働時間">
+
+  <!-- URLバーに色を反映させたくないなら theme-color は入れない（ここ重要） -->
+  <!-- <meta name="theme-color" content="#ffffff"> -->
+
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+
+<body>
+  <div class="wrap">
+
+    <!-- ===== 上段：計算 ===== -->
+    <section class="card">
+      <h1>実働時間 計算</h1>
+      <div class="sub">開始・終了を入力すると自動計算（休憩は分割/任意OK）</div>
+
+      <div class="result">
+        <div>
+          <div class="hint">実働時間</div>
+          <div class="big mono" id="resultText">0時間0分</div>
+        </div>
+        <div class="right">
+          <div class="hint">合計（分）</div>
+          <div class="mins mono" id="resultMinutes">0</div>
+        </div>
+      </div>
+
+      <div class="metaRow">
+        <div>休憩合計：<span class="mono" id="breakMeta">0</span>分</div>
+        <div>差引前：<span class="mono" id="rawMeta">0</span>分</div>
+      </div>
+
+      <div class="grid">
+        <div class="field">
+          <label for="startTime">開始</label>
+          <input type="time" id="startTime" value="08:00">
+        </div>
+
+        <div class="field">
+          <label for="endTime">終了</label>
+          <input type="time" id="endTime" value="17:00">
+        </div>
+
+        <div class="breakBox">
+          <div class="breakHeader">
+            <div class="breakTitle">休憩（分割・任意）</div>
+            <div class="breakHint">1分刻み / 行を増やせます</div>
+          </div>
+
+          <div class="breakBtns">
+            <button type="button" class="breakBtn" id="add45">+45分</button>
+            <button type="button" class="breakBtn" id="add60">+60分</button>
+          </div>
+
+          <div class="breakList" id="breakList"></div>
+
+          <div class="breakFooter">
+            <div class="breakTotal">合計：<span class="mono" id="breakSum">0</span>分</div>
+            <button type="button" class="addBreak" id="addCustom">+ 休憩を追加</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="toggle">
+        <input type="checkbox" id="crossMidnight">
+        <label for="crossMidnight">日またぎとして計算</label>
+      </div>
+
+      <div class="actions">
+        <button class="btn primary" id="saveBtn" type="button">この日に保存</button>
+        <button class="btn ghost" id="clearBtn" type="button">削除</button>
+      </div>
+
+      <div class="hint">選択日：<span class="mono" id="selectedDateText"></span></div>
+    </section>
+
+    <!-- ===== 下段：カレンダー ===== -->
+    <section class="card">
+      <div class="calHeader">
+        <div class="calTitle" id="monthTitle"></div>
+        <div class="calNav">
+          <button type="button" id="prevMonth">←</button>
+          <button type="button" id="todayBtn">今月</button>
+          <button type="button" id="nextMonth">→</button>
+        </div>
+      </div>
+
+      <div class="dow">
+        <div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>
+      </div>
+
+      <div class="calGrid" id="calGrid"></div>
+
+      <div class="infoGrid">
+        <div class="infoBox">
+          <div class="value mono" id="dayRecordText">未記録</div>
+        </div>
+
+        <div class="infoBox">
+          <textarea id="memoInput" class="memoEdit" placeholder=""></textarea>
+          <div class="hint">祝日名は自動で入ります（手入力があれば上書きしません）。</div>
+        </div>
+      </div>
+
+      <div class="calFooter">
+        <button type="button" class="footerSave" id="saveBtnBottom">保存</button>
+
+        <div class="grandTotal">
+          <div class="label">現在までの総労働時間</div>
+          <div class="value mono" id="grandTotalText">0時間0分</div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- 先に祝日ロジック → その後 app -->
+  <script src="./js/holidays.js" defer></script>
+  <script src="./js/app.js" defer></script>
+
+  <!-- Service Worker登録（PWA認識用の要） -->
+  <script>
+    (function () {
+      if (!("serviceWorker" in navigator)) return;
+
+      // GitHub Pages（https）でのみ有効。ローカルfile://では動かない
+      window.addEventListener("load", async () => {
+        try {
+          await navigator.serviceWorker.register("./sw.js", { scope: "./" });
+        } catch (e) {
+          // 失敗してもアプリ本体は動くので黙ってOK
+          console.warn("SW register failed:", e);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
